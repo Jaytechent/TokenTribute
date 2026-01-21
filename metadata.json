@@ -1,0 +1,8 @@
+{
+  "name": "TokenTribute",
+  "description": "A donation platform for Ethos users. Send USDC on Base Sepolia to high-credibility members (1400+) identified by their Ethos profiles.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
