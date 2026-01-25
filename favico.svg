@@ -1,0 +1,14 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background Circle with Gradient -->
+  <circle cx="128" cy="128" r="128" fill="url(#bgGradient)"/>
+  
+  <!-- Letter T in White -->
+  <text x="128" y="170" font-family="Arial, sans-serif" font-size="160" font-weight="bold" fill="white" text-anchor="middle" letter-spacing="0">T</text>
+</svg>

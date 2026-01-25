@@ -1,5 +1,5 @@
 
-export const BASE_SEPOLIA_USDC_ADDRESS = '0x036CbD53842c5426634e7929541eC2318f3dCF7e';
+export const BASE_SEPOLIA_USDC_ADDRESS = '0xf7464321de37bde4c03aaeef6b1e7b71379a9a64';
 export const USDC_DECIMALS = 6;
 
 export const ERC20_ABI = [

@@ -1,14 +1,63 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TokenTribute | Credibility-Based Donations</title>
+  <!-- Basic Meta -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  <!-- Title -->
+  <title>TokenTribute | Credibility-Based Web3 Donations</title>
+
+  <!-- SEO Meta -->
+  <meta name="description" content="TokenTribute is a Web3 donation platform that rewards high-credibility Ethos members with USDC. Support trusted creators, builders, and contributors on-chain." />
+  <meta name="keywords" content="Web3 donations, Ethos Network, credibility score, USDC donations, Base blockchain, crypto tipping, decentralized donations, on-chain reputation, TokenTribute" />
+  <meta name="author" content="TokenTribute" />
+  <meta name="robots" content="index, follow" />
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://tokentribute.xyz" />
+
+  <!-- Favicon -->
+  <link rel="icon" href="/favico.svg" type="image/png" />
+  <link rel="apple-touch-icon" href="/favico.svg" />
+  <meta name="theme-color" content="#00D1FF" />
+
+  <!-- Open Graph (Facebook, LinkedIn, etc) -->
+  <meta property="og:title" content="TokenTribute | Credibility-Based Web3 Donations" />
+  <meta property="og:description" content="Donate to trusted Ethos members using USDC. A credibility-first, on-chain donation platform built on Base." />
+  <meta property="og:image" content="https://tokentribute.xyz/favico.svg" />
+  <meta property="og:url" content="https://tokentribute.xyz" />
+  <meta property="og:type" content="website" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="TokenTribute | Credibility-Based Web3 Donations" />
+  <meta name="twitter:description" content="Reward credibility. Donate on-chain. Powered by Ethos Network and Base." />
+  <meta name="twitter:image" content="https://tokentribute.xyz/og-image.png" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          'ethos-cyan': '#00D1FF',
+          'ethos-purple': '#7C7CFF'
+        }
+      }
+    }
+  }
+</script>
+
+
+  <!-- Styles -->
   <style>
     body {
       font-family: 'Inter', sans-serif;
@@ -38,27 +87,31 @@
       box-shadow: 0 0 20px rgba(0, 209, 255, 0.2);
       border: 1px solid rgba(0, 209, 255, 0.4);
     }
-    /* RainbowKit Overrides */
     :root {
       --rk-colors-accentColor: #00D1FF;
     }
   </style>
-<script type="importmap">
-{
-  "imports": {
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "react": "https://esm.sh/react@^19.2.3",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "wagmi/": "https://esm.sh/wagmi@^3.3.4/",
-    "wagmi": "https://esm.sh/wagmi@^3.3.4",
-    "viem": "https://esm.sh/viem@^2.44.4",
-    "@rainbow-me/rainbowkit/": "https://esm.sh/@rainbow-me/rainbowkit@^2.2.10/",
-    "@rainbow-me/rainbowkit": "https://esm.sh/@rainbow-me/rainbowkit@^2.2.10"
+
+  <!-- Import Map -->
+  <script type="importmap">
+  {
+    "imports": {
+      "react/": "https://esm.sh/react@18.3.1/",
+      "react": "https://esm.sh/react@18.3.1",
+      "react-dom/": "https://esm.sh/react-dom@18.3.1/",
+      "wagmi": "https://esm.sh/wagmi@2.12.7",
+      "wagmi/chains": "https://esm.sh/wagmi@2.12.7/chains",
+      "viem": "https://esm.sh/viem@2.21.0",
+      "@tanstack/react-query": "https://esm.sh/@tanstack/react-query@5.56.2",
+      "@rainbow-me/rainbowkit": "https://esm.sh/@rainbow-me/rainbowkit@2.1.6",
+      "@rainbow-me/rainbowkit/styles.css": "https://esm.sh/@rainbow-me/rainbowkit@2.1.6/styles.css"
+    }
   }
-}
-</script>
+  </script>
 </head>
+
 <body>
   <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
 </body>
 </html>

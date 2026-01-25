@@ -1,102 +1,172 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import { EthosProfile } from '../types';
-import { ELIGIBILITY_THRESHOLD } from '../constants';
 
 interface ProfileCardProps {
   profile: EthosProfile;
   onDonate: (profile: EthosProfile) => void;
+  onProfileClick?: () => void;
+  userEthosScore?: number;
 }
 
-const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onDonate }) => {
-  const [copied, setCopied] = useState(false);
-  const isEligible = profile.credibilityScore >= ELIGIBILITY_THRESHOLD;
-  const wallet = profile.userkeys.find(k => k.startsWith("address:"))?.replace("address:", "");
-  const canDonate = isEligible && !!wallet;
+const ProfileCard: React.FC<ProfileCardProps> = ({ 
+  profile, 
+  onDonate, 
+  onProfileClick,
+  userEthosScore = 0
+}) => {
+  const handleProfileClick = () => {
+    if (onProfileClick) {
+      onProfileClick();
+    } else {
+      window.open(profile.profileUrl, '_blank');
+    }
+  };
 
-  let tooltip = "";
-  if (!isEligible) tooltip = "User not eligible for donations (Score < 1400)";
-  else if (!wallet) tooltip = "No wallet linked to this profile";
-
-  const handleShare = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const shareUrl = `${window.location.origin}${window.location.pathname}?profile=${profile.username}`;
-    navigator.clipboard.writeText(shareUrl).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
+  // ✅ Donation share link (this is what was broken before)
+  const handleShareClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // ⛔ prevent profile click
+    const donationLink = `${window.location.origin}/donate/${profile.username}`;
+    navigator.clipboard.writeText(donationLink);
+    alert('Donation link copied!');
   };
 
   return (
-    <div className={`glass-card p-6 rounded-2xl transition-all duration-300 group ${isEligible ? 'eligible-glow hover:-translate-y-1' : 'opacity-60'}`}>
-      <div className="flex items-center gap-4 mb-4">
-        <div className="relative">
-          <img 
-            src={profile.avatarUrl} 
-            alt={profile.username} 
-            className="w-16 h-16 rounded-full border-2 border-slate-700 object-cover"
-          />
-          {isEligible && (
-            <div className="absolute -bottom-1 -right-1 bg-cyan-500 rounded-full p-1 border-2 border-[#0A0E17]">
-              <svg className="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-          )}
-        </div>
-        <div className="flex-grow">
-          <h3 className="text-lg font-bold text-white group-hover:text-cyan-400 transition-colors">{profile.displayName}</h3>
-          <p className="text-slate-400 text-sm">@{profile.username}</p>
-        </div>
-        
-        {/* Share Button */}
-        <button 
-          onClick={handleShare}
-          className="p-2 rounded-lg hover:bg-white/5 text-slate-500 hover:text-cyan-400 transition-all relative"
-          title="Share direct donation link"
-        >
-          {copied ? (
-            <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-cyan-500 text-black text-[10px] font-bold px-2 py-1 rounded whitespace-nowrap animate-bounce">
-              Copied!
-            </span>
-          ) : null}
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-          </svg>
-        </button>
+    <div className="glass-card rounded-2xl overflow-hidden border border-white/10 hover:border-ethos-cyan/30 transition-all group">
+      {/* Profile Header with Image - Clickable */}
+      <div 
+        className="h-40 bg-gradient-to-b from-ethos-cyan/20 to-slate-900 relative overflow-hidden cursor-pointer hover:from-ethos-cyan/40 transition-all"
+        onClick={handleProfileClick}
+      >
+        <img 
+          src={profile.avatarUrl} 
+          alt={profile.displayName}
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+          onError={(e) => {
+            e.currentTarget.src =
+              'https://api.dicebear.com/7.x/avataaars/svg?seed=' +
+              profile.username;
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
       </div>
 
-      <div className="space-y-3">
-        <div className="flex justify-between items-center text-sm">
-          <span className="text-slate-400">Credibility Score</span>
-          <span className={`font-bold ${isEligible ? 'text-cyan-400' : 'text-slate-400'}`}>
-            {profile.credibilityScore}
-          </span>
-        </div>
+      {/* Profile Content */}
+      <div className="p-6 space-y-4">
+        {/* Avatar, Name & Share Icon */}
+        <div 
+          className="flex items-start justify-between cursor-pointer group/header"
+          onClick={handleProfileClick}
+        >
+          <div className="flex items-start gap-3 flex-1">
+            <img 
+              src={profile.avatarUrl} 
+              className="w-12 h-12 rounded-full border-2 border-ethos-cyan/50 group-hover/header:border-ethos-cyan transition-all flex-shrink-0" 
+              alt={profile.displayName}
+              onError={(e) => {
+                e.currentTarget.src =
+                  'https://api.dicebear.com/7.x/avataaars/svg?seed=' +
+                  profile.username;
+              }}
+            />
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-white group-hover/header:text-ethos-cyan transition-colors truncate">
+                {profile.displayName}
+              </p>
+              <p className="text-sm text-slate-400 truncate">
+                @{profile.username}
+              </p>
+            </div>
+          </div>
 
-        <div className="flex justify-between items-center text-sm">
-          <span className="text-slate-400">Status</span>
-          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${isEligible ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-500/20 text-slate-400'}`}>
-            {isEligible ? 'Eligible' : 'Not Eligible'}
-          </span>
-        </div>
-
-        <div className="pt-4">
+          {/* ✅ SHARE BADGE (fixed) */}
           <button
-            onClick={() => canDonate && onDonate(profile)}
-            disabled={!canDonate}
-            title={tooltip}
-            className={`w-full py-3 rounded-xl font-bold transition-all duration-200 ${
-              canDonate 
-              ? 'ethos-gradient text-white hover:opacity-90 active:scale-95 shadow-lg shadow-cyan-500/20' 
-              : 'bg-slate-800 text-slate-500 cursor-not-allowed'
-            }`}
+            onClick={handleShareClick}
+            className="flex-shrink-0"
+            title="Share donation link"
           >
-            {canDonate ? 'Donate USDC' : 'Ineligible'}
+            <svg
+              className="w-5 h-5 text-slate-400 hover:text-ethos-cyan transition-colors"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+              />
+            </svg>
           </button>
-          {!wallet && isEligible && (
-            <p className="text-[10px] text-center mt-2 text-amber-400/80">Missing Wallet Address</p>
-          )}
+        </div>
+
+        {/* Credibility Score */}
+        <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-700/50">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-xs text-slate-500 uppercase font-bold">
+              Credibility Score
+            </span>
+            <span className="text-lg font-bold text-ethos-cyan">
+              {profile.credibilityScore}
+            </span>
+          </div>
+          <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+            <div 
+              className="bg-gradient-to-r from-ethos-cyan to-ethos-purple h-2 rounded-full transition-all"
+              style={{
+                width: `${Math.min(
+                  (profile.credibilityScore / 2500) * 100,
+                  100
+                )}%`
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-2 text-center text-xs">
+          <div className="bg-slate-900/30 p-2 rounded-lg">
+            <p className="text-slate-500">Reviews</p>
+            <p className="font-bold text-white">
+              {profile.stats.reviewsReceived.positive}
+            </p>
+          </div>
+          <div className="bg-slate-900/30 p-2 rounded-lg">
+            <p className="text-slate-500">Vouches</p>
+            <p className="font-bold text-white">
+              {profile.stats.vouchesReceived}
+            </p>
+          </div>
+          <div className="bg-slate-900/30 p-2 rounded-lg">
+            <p className="text-slate-500">Sent</p>
+            <p className="font-bold text-white">
+              {profile.stats.vouchesGiven}
+            </p>
+          </div>
+        </div>
+
+        {/* Description */}
+        {profile.description && (
+          <p className="text-sm text-slate-400 line-clamp-2">
+            {profile.description}
+          </p>
+        )}
+
+        {/* Action Buttons */}
+        <div className="flex gap-2 pt-2">
+          <button
+            onClick={handleProfileClick}
+            className="flex-1 py-2 bg-slate-800/50 hover:bg-slate-700 text-white text-sm font-bold rounded-lg transition-colors border border-slate-700/50 hover:border-ethos-cyan/50"
+          >
+            View Profile
+          </button>
+          
+          <button
+            onClick={() => onDonate(profile)}
+            className="flex-1 py-2 bg-ethos-gradient text-white text-sm font-bold rounded-lg transition-all hover:shadow-lg hover:shadow-ethos-cyan/30"
+          >
+            Donate
+          </button>
         </div>
       </div>
     </div>

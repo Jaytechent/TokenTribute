@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
-import { useWriteContract, useWaitForTransaction, useAccount } from 'wagmi';
+import { useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagmi';
 import { parseUnits } from 'viem';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { EthosProfile } from '../types';
+import { saveDonation } from '../services/donationApi';
 import { BASE_SEPOLIA_USDC_ADDRESS, USDC_DECIMALS, ERC20_ABI } from '../constants';
 
 interface DonateModalProps {
@@ -15,29 +15,58 @@ interface DonateModalProps {
 }
 
 const DonateModal: React.FC<DonateModalProps> = ({ profile, recipientWallet, onClose, onSuccess, onShare }) => {
-  const { isConnected, address } = useAccount();
+  const { isConnected, address, chainId } = useAccount();
   const [amount, setAmount] = useState<string>('');
+  const [isSavingToDb, setIsSavingToDb] = useState(false);
+  const [dbError, setDbError] = useState<string | null>(null);
   
-  const { data: hash, writeContract, isLoading: isSending, error } = useWriteContract();
+  const { data: hash, writeContract, isPending: isSending, error } = useWriteContract();
   
-  const { isLoading: isWaiting, isSuccess } = useWaitForTransaction({
+  const { isLoading: isWaiting, isSuccess } = useWaitForTransactionReceipt({
     hash,
   });
 
   useEffect(() => {
-    if (isSuccess && amount) {
-      onSuccess(amount);
+    if (isSuccess && amount && !isSavingToDb) {
+      saveDonationToDatabase();
     }
-  }, [isSuccess]);
+  }, [isSuccess, amount, isSavingToDb]);
+
+  const saveDonationToDatabase = async () => {
+    if (!address) return;
+
+    setIsSavingToDb(true);
+    setDbError(null);
+
+    try {
+      await saveDonation({
+        donorAddress: address,
+        recipientUsername: profile.username,
+        recipientAvatar: profile.avatarUrl,
+        amount: amount,
+        timestamp: Date.now(),
+        transactionHash: hash || undefined,
+      });
+
+      // Call onSuccess after successful database save
+      onSuccess(amount);
+    } catch (error) {
+      console.error('Error saving donation to database:', error);
+      setDbError('Donation was sent on-chain but failed to save to database. Please refresh the page.');
+    } finally {
+      setIsSavingToDb(false);
+    }
+  };
 
   const handleSend = () => {
-    if (!amount || isNaN(Number(amount))) return;
+    if (!amount || isNaN(Number(amount)) || !address) return;
     const amountInUnits = parseUnits(amount, USDC_DECIMALS);
     writeContract({
       address: BASE_SEPOLIA_USDC_ADDRESS as `0x${string}`,
       abi: ERC20_ABI,
       functionName: 'transfer',
       args: [recipientWallet as `0x${string}`, amountInUnits],
+      account: address,
     });
   };
 
@@ -105,22 +134,51 @@ const DonateModal: React.FC<DonateModalProps> = ({ profile, recipientWallet, onC
             </div>
           ) : isSuccess ? (
             <div className="text-center py-6 space-y-4">
-              <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto">
-                <svg className="w-8 h-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-white">Tribute Sent!</h3>
-              <p className="text-slate-400 text-sm">Your donation has been confirmed on-chain.</p>
-              <div className="flex gap-3 mt-6">
-                <button onClick={onShare} className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 rounded-xl font-bold transition-colors">Share</button>
-                <button onClick={onClose} className="flex-1 py-3 ethos-gradient text-white rounded-xl font-bold transition-opacity hover:opacity-90">Done</button>
-              </div>
+              {isSavingToDb ? (
+                <>
+                  <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto">
+                    <svg className="animate-spin h-8 w-8 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-white">Saving to Database...</h3>
+                  <p className="text-slate-400 text-sm">Recording your donation on our platform</p>
+                </>
+              ) : dbError ? (
+                <>
+                  <div className="w-16 h-16 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto">
+                    <svg className="w-8 h-8 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4v2m0 0v2m0-6v2m0 4v2" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-white">Donation Sent ⚠️</h3>
+                  <p className="text-yellow-400 text-sm">{dbError}</p>
+                  <div className="flex gap-3 mt-6">
+                    <button onClick={onShare} className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 rounded-xl font-bold transition-colors">Share</button>
+                    <button onClick={onClose} className="flex-1 py-3 ethos-gradient text-white rounded-xl font-bold transition-opacity hover:opacity-90">Done</button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto">
+                    <svg className="w-8 h-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-white">Tribute Sent!</h3>
+                  <p className="text-slate-400 text-sm">Your donation has been confirmed on-chain and saved to our platform.</p>
+                  <div className="flex gap-3 mt-6">
+                    <button onClick={onShare} className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 rounded-xl font-bold transition-colors">Share</button>
+                    <button onClick={onClose} className="flex-1 py-3 ethos-gradient text-white rounded-xl font-bold transition-opacity hover:opacity-90">Done</button>
+                  </div>
+                </>
+              )}
             </div>
           ) : (
             <div className="space-y-4">
                {error && (
-                 <p className="text-red-400 text-xs text-center bg-red-500/10 p-2 rounded">
+                 <p className="text-red-400 text-xs text-center bg-red-500/10 p-2 rounded max-h-24 overflow-y-auto">
                    {error.message.includes('insufficient') ? 'Insufficient USDC balance' : 'Transaction failed. Please try again.'}
                  </p>
                )}
