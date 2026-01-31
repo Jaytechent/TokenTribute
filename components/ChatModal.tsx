@@ -33,10 +33,10 @@ const ChatModal: React.FC<ChatModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const API_URL = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'http://localhost:5000';
+  const API_URL = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'https://token-tribute-be.vercel.app';
   
  
-  const MIN_CREDIBILITY = 0; // Set to 0 for testing - change to 1400 for production
+  const MIN_CREDIBILITY = 1400; 
 
   // Check eligibility
   const canChat = isConnected && ethosScore >= MIN_CREDIBILITY;
