@@ -70,7 +70,7 @@ export const searchUsersByKeyword = async (keyword: string, limit: number = 50):
       return data.values;
     }
 
-    console.warn(`⚠️ Unexpected response format for keyword "${keyword}"`);
+    
     return [];
   } catch (error) {
     console.error(`❌ Error searching for keyword "${keyword}":`, error);
@@ -143,13 +143,13 @@ export const fetchTopCredibilityUsers = async (limit: number = 50): Promise<any[
             }
           });
 
-          console.log(`✅ Found ${addedCount} eligible users for keyword "${keyword}"`);
+      
         }
 
         // Delay to avoid rate limiting
         await new Promise(resolve => setTimeout(resolve, 300));
       } catch (error) {
-        console.error(`❌ Error with keyword "${keyword}":`, error);
+       
         continue;
       }
     }
@@ -188,7 +188,7 @@ export const fetchTopCredibilityUsers = async (limit: number = 50): Promise<any[
     
     if (batchUsers.length > 0) {
       users.push(...batchUsers);
-      console.log(`✅ Batch fetch got ${batchUsers.length} users`);
+  
     } else {
       console.log('⚠️ Batch failed, fetching individually...');
       for (let i = 0; i < limit; i += 5) {
@@ -226,7 +226,7 @@ export const fetchTopCredibilityUsers = async (limit: number = 50): Promise<any[
       .sort((a, b) => b.credibilityScore - a.credibilityScore)
       .slice(0, limit);
 
-    console.log(`✨ Successfully loaded ${profiles.length} eligible users`);
+    
     return profiles;
   } catch (error) {
     console.error('Error fetching users:', error);

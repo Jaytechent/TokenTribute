@@ -19,6 +19,7 @@ const DonateModal: React.FC<DonateModalProps> = ({ profile, recipientWallet, onC
   const [amount, setAmount] = useState<string>('');
   const [isSavingToDb, setIsSavingToDb] = useState(false);
   const [dbError, setDbError] = useState<string | null>(null);
+  const [hasAttemptedSave, setHasAttemptedSave] = useState(false);
   
   const { data: hash, writeContract, isPending: isSending, error } = useWriteContract();
   
@@ -26,11 +27,13 @@ const DonateModal: React.FC<DonateModalProps> = ({ profile, recipientWallet, onC
     hash,
   });
 
+  // Save to database ONLY once after successful transaction
   useEffect(() => {
-    if (isSuccess && amount && !isSavingToDb) {
+    if (isSuccess && amount && !hasAttemptedSave) {
+      setHasAttemptedSave(true);
       saveDonationToDatabase();
     }
-  }, [isSuccess, amount, isSavingToDb]);
+  }, [isSuccess, amount, hasAttemptedSave]);
 
   const saveDonationToDatabase = async () => {
     if (!address) return;

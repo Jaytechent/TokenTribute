@@ -35,9 +35,7 @@ const ChatModal: React.FC<ChatModalProps> = ({
 
   const API_URL = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'http://localhost:5000';
   
-  console.log('🔌 Chat API URL:', API_URL);
-  console.log('📍 Talent Address:', talentAddress);
-  console.log('🔑 Your Address:', address);
+ 
   const MIN_CREDIBILITY = 0; // Set to 0 for testing - change to 1400 for production
 
   // Check eligibility

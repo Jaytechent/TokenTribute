@@ -5,6 +5,7 @@ interface ProfileCardProps {
   profile: EthosProfile;
   onDonate: (profile: EthosProfile) => void;
   onProfileClick?: () => void;
+  onShowToast?: (message: string) => void;
   userEthosScore?: number;
 }
 
@@ -12,6 +13,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   profile, 
   onDonate, 
   onProfileClick,
+  onShowToast,
   userEthosScore = 0
 }) => {
   const handleProfileClick = () => {
@@ -22,12 +24,21 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     }
   };
 
-  // ✅ Donation share link (this is what was broken before)
+  // ✅ Donation share link - uses toast instead of alert
   const handleShareClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // ⛔ prevent profile click
-    const donationLink = `${window.location.origin}/donate/${profile.username}`;
-    navigator.clipboard.writeText(donationLink);
-    alert('Donation link copied!');
+    const shareUrl = `${window.location.origin}${window.location.pathname}?profile=${profile.username}`;
+    navigator.clipboard.writeText(shareUrl)
+      .then(() => {
+        if (onShowToast) {
+          onShowToast('✨ Share link copied to clipboard!');
+        }
+      })
+      .catch(() => {
+        if (onShowToast) {
+          onShowToast('Failed to copy link. Please try again.');
+        }
+      });
   };
 
   return (

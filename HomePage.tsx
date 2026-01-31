@@ -4,7 +4,7 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 import { EthosProfile, DonationState, DonationRecord } from './types';
 import { fetchTopCredibilityUsers, fetchUserByUsername, fetchUserByAddress, extractAddressFromUserkeys } from './services/ethosService';
-import { saveDonation, getAllDonations, getSavedTalent, saveTalent } from './services/donationApi';
+import { saveDonation, getAllDonations } from './services/donationApi';
 import EthosLogo from './components/EthosLogo';
 import FounderMode from './components/FounderMode';
 import ProfileCard from './components/ProfileCard';
@@ -17,7 +17,8 @@ type ViewType = 'discover' | 'founder';
 
 const MIN_CREDIBILITY = parseInt(import.meta.env.VITE_REACT_APP_MIN_CREDIBILITY_SCORE || '1200');
 const ITEMS_PER_PAGE = parseInt(import.meta.env.VITE_REACT_APP_ITEMS_PER_PAGE || '12');
-const INITIAL_FETCH = parseInt(import.meta.env.VITE_REACT_APP_INITIAL_FETCH_COUNT || '50');
+const INITIAL_FETCH = parseInt(import.meta.env.VITE_REACT_APP_INITIAL_FETCH_COUNT || '150');
+const SAVED_TALENT_STORAGE_KEY = 'ethos_saved_talent';
 
 const HomePage: React.FC = () => {
   const { address } = useAccount();
@@ -35,13 +36,14 @@ const HomePage: React.FC = () => {
   const [savedTalent, setSavedTalent] = useState<EthosProfile[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [loadingTalent, setLoadingTalent] = useState(false);
-  const [userEthosScore, setUserEthosScore] = useState(0);
 
   const [donation, setDonation] = useState<DonationState>({
     isOpen: false,
     profile: null,
     extractedWallet: null,
   });
+
+  const [userEthosScore, setUserEthosScore] = useState(0);
 
   const showToast = (message: string) => {
     setToast({ message, visible: true });
@@ -50,9 +52,13 @@ const HomePage: React.FC = () => {
 
   const copyShareLink = (username: string) => {
     const shareUrl = `${window.location.origin}${window.location.pathname}?profile=${username}`;
-    navigator.clipboard.writeText(shareUrl).then(() => {
-      showToast('Donation link copied to clipboard!');
-    });
+    navigator.clipboard.writeText(shareUrl)
+      .then(() => {
+        showToast('✨ Share link copied to clipboard!');
+      })
+      .catch(() => {
+        showToast('Failed to copy link. Please try again.');
+      });
   };
 
   // Fetch user's Ethos credibility score
@@ -95,41 +101,22 @@ const HomePage: React.FC = () => {
     loadAllDonations();
   }, []);
 
-  // Load user's saved talent when address changes
+  // Load saved talent from localStorage on mount
   useEffect(() => {
-    if (!address) {
-      setSavedTalent([]);
-      return;
-    }
-
-    const loadUserTalent = async () => {
-      setLoadingTalent(true);
+    const loadSavedTalentFromStorage = () => {
       try {
-        const talent = await getSavedTalent(address);
-        const talentProfiles: EthosProfile[] = talent.map((t: any) => ({
-          id: t.profileId,
-          displayName: t.displayName,
-          username: t.username,
-          avatarUrl: t.avatarUrl,
-          description: '',
-          credibilityScore: t.credibilityScore,
-          userkeys: [],
-          profileUrl: t.profileUrl,
-          stats: {
-            reviewsReceived: { positive: 0, neutral: 0, negative: 0 },
-            vouchesGiven: 0,
-            vouchesReceived: 0,
-          },
-        }));
-        setSavedTalent(talentProfiles);
+        const stored = localStorage.getItem(SAVED_TALENT_STORAGE_KEY);
+        if (stored) {
+          const talentProfiles: EthosProfile[] = JSON.parse(stored);
+          setSavedTalent(talentProfiles);
+          console.log(`✅ Loaded ${talentProfiles.length} saved talent profiles from localStorage`);
+        }
       } catch (error) {
-        console.error('Error loading saved talent:', error);
-      } finally {
-        setLoadingTalent(false);
+        console.error('Error loading saved talent from localStorage:', error);
       }
     };
-    loadUserTalent();
-  }, [address]);
+    loadSavedTalentFromStorage();
+  }, []);
 
   // Fetch initial profiles
   useEffect(() => {
@@ -283,30 +270,37 @@ const HomePage: React.FC = () => {
     window.history.pushState({}, '', window.location.pathname);
   };
 
-  const saveTalentForFounder = async (profile: EthosProfile) => {
-    if (!address) {
-      showToast('Please connect your wallet first');
-      return;
-    }
-
+  // Save talent to localStorage only
+  const saveTalentForFounder = (profile: EthosProfile) => {
     if (savedTalent.find(t => t.id === profile.id)) {
       showToast(`${profile.displayName} is already saved`);
       return;
     }
 
     try {
-      await saveTalent(address, profile);
-      setSavedTalent(prev => [profile, ...prev]);
+      const updatedTalent = [profile, ...savedTalent];
+      setSavedTalent(updatedTalent);
+      localStorage.setItem(SAVED_TALENT_STORAGE_KEY, JSON.stringify(updatedTalent));
       showToast(`${profile.displayName} added to your talent pool! ✨`);
     } catch (error) {
-      console.error('Error saving talent:', error);
-      showToast('Failed to save talent. Make sure backend is running.');
+      console.error('Error saving talent to localStorage:', error);
+      showToast('Failed to save talent.');
     }
   };
 
+  // Remove talent from localStorage
   const removeSavedTalent = (profileId: string) => {
-    setSavedTalent(prev => prev.filter(t => t.id !== profileId));
+    const updatedTalent = savedTalent.filter(t => t.id !== profileId);
+    setSavedTalent(updatedTalent);
+    localStorage.setItem(SAVED_TALENT_STORAGE_KEY, JSON.stringify(updatedTalent));
     showToast('Removed from talent pool');
+  };
+
+  // Clear all saved talent from localStorage
+  const clearAllSavedTalent = () => {
+    setSavedTalent([]);
+    localStorage.removeItem(SAVED_TALENT_STORAGE_KEY);
+    showToast('Talent pool cleared');
   };
 
   return (
@@ -425,10 +419,7 @@ const HomePage: React.FC = () => {
 
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-12 gap-6">
               <div>
-                <h2 className="text-3xl font-azeera font-bold text-white">Eligible Members</h2>
-                <p className="text-slate-500 text-sm mt-1">
-                  {searchQuery ? `Found ${sortedProfiles.length} results` : `Showing ${paginatedProfiles.length} of ${filteredProfiles.length} profiles`}
-                </p>
+                <h2 className="text-3xl font-azeera font-bold text-white">VERIFIED ETHOS Members</h2>
               </div>
               
               <div className="flex items-center gap-3">
@@ -470,6 +461,7 @@ const HomePage: React.FC = () => {
                       profile={profile} 
                       onDonate={openDonateModal}
                       onProfileClick={() => window.open(profile.profileUrl, '_blank')}
+                      onShowToast={showToast}
                       userEthosScore={userEthosScore}
                     />
                   ))}
@@ -515,7 +507,7 @@ const HomePage: React.FC = () => {
               </>
             ) : (
               <div className="text-center py-12">
-                <p className="text-slate-400">No profiles found. Try a different search.</p>
+                <p className="text-slate-400">No profiles found. Does this person has Ethos account? </p>
               </div>
             )}
           </main>
@@ -526,13 +518,14 @@ const HomePage: React.FC = () => {
           profiles={profiles}
           savedTalent={savedTalent}
           history={history}
-          userEthosScore={userEthosScore}
+          onShowToast={showToast}
+                      userEthosScore={userEthosScore}
           loadingTalent={loadingTalent}
           onSaveTalent={saveTalentForFounder}
           onRemoveTalent={removeSavedTalent}
-          onClearAllTalent={() => setSavedTalent([])}
+          onClearAllTalent={clearAllSavedTalent}
           onDonate={openDonateModal}
-          onShowToast={showToast}
+        
         />
       )}
 
@@ -541,7 +534,7 @@ const HomePage: React.FC = () => {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex items-center gap-2 opacity-60">
             <span className="text-sm font-azeera font-bold">TokenTribute</span>
-            <span className="text-xs text-slate-500">© 2024</span>
+            <span className="text-xs text-slate-500">© 2026</span>
           </div>
           <div className="flex gap-12 text-sm font-medium text-slate-400">
             <span className="flex items-center gap-2"><span className="w-1 h-1 bg-ethos-cyan rounded-full"></span> Powered by Ethos Network</span>
