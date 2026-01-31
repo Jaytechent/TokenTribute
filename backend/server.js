@@ -76,12 +76,7 @@ app.get('/', (req, res) => {
   res.status(200).json({ 
     message: 'TokenTribute Backend is running! ✅',
     timestamp: new Date().toISOString(),
-    endpoints: {
-      donations: '/api/donations',
-      stats: '/api/stats',
-      talent: '/api/talent/:founderAddress',
-      messages: '/api/messages/:address1/:address2'
-    }
+    
   });
 });
 
