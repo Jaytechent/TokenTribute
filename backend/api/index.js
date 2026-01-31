@@ -69,6 +69,23 @@ const SavedTalent = mongoose.model('SavedTalent', talentSchema);
 const Message = mongoose.model('Message', messageSchema);
 
 // ============================================
+// HEALTH CHECK ENDPOINT (For Vercel)
+// ============================================
+
+app.get('/', (req, res) => {
+  res.status(200).json({ 
+    message: 'TokenTribute Backend is running! ✅',
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      donations: '/api/donations',
+      stats: '/api/stats',
+      talent: '/api/talent/:founderAddress',
+      messages: '/api/messages/:address1/:address2'
+    }
+  });
+});
+
+// ============================================
 // DONATION ROUTES
 // ============================================
 
@@ -435,24 +452,45 @@ app.delete('/api/messages/:id', async (req, res) => {
 });
 
 // ============================================
-// START SERVER (AFTER DB CONNECTION)
+// ERROR HANDLERS
 // ============================================
 
-const PORT = process.env.PORT || 5000;
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ error: 'Route not found' });
+});
 
-const startServer = async () => {
-  const dbConnected = await connectDB();
-  
-  if (!dbConnected) {
-    console.error('❌ Failed to connect to MongoDB. Server will not start.');
-    process.exit(1);
-  }
-
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-   
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(err.status || 500).json({ 
+    error: err.message || 'Internal Server Error' 
   });
-};
+});
 
-startServer();
+// ============================================
+// EXPORTS FOR VERCEL & LOCAL DEVELOPMENT
+// ============================================
 
+// Export the app for Vercel serverless functions
+export default app;
+
+// Only connect to DB and listen locally (not on Vercel)
+if (!process.env.VERCEL) {
+  const PORT = process.env.PORT || 5000;
+
+  const startServer = async () => {
+    const dbConnected = await connectDB();
+    
+    if (!dbConnected) {
+      console.error('❌ Failed to connect to MongoDB. Server will not start.');
+      process.exit(1);
+    }
+
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
+  };
+
+  startServer();
+}
