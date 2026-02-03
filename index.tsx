@@ -2,21 +2,20 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { WagmiProvider, http } from 'wagmi';
-import { baseSepolia } from 'wagmi/chains';
+import { base } from 'wagmi/chains';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RainbowKitProvider, getDefaultConfig, darkTheme } from '@rainbow-me/rainbowkit';
 import '@rainbow-me/rainbowkit/styles.css';
 
 const queryClient = new QueryClient();
 
-// Multiple RPC endpoints for Base Sepolia
-const baseSepoliaRpcs = [
-  'https://sepolia.base.org',
-  'https://base-sepolia-rpc.publicnode.com',
-  'https://sepolia-rpc.ankr.com/base',
-  'https://base-sepolia.public.blastapi.io',
-  'https://rpc.sepolia.basemainnet.io',
-  'https://base-sepolia.drpc.org',
+// Multiple RPC endpoints for Base Mainnet
+const baseMainnetRpcs = [
+  'https://mainnet.base.org',
+  'https://base-rpc.publicnode.com',
+  'https://rpc.ankr.com/base',
+  'https://base.publicnode.com',
+  'https://base.drpc.org',
 ];
 
 // Create a simple fallback transport using the first available RPC
@@ -30,26 +29,28 @@ const createFallbackTransport = (rpcs: string[]) => {
 const config = getDefaultConfig({
   appName: 'TokenTribute',
   projectId: '345cb8dcc8e9ec849140ecf8a91a505c',
-  chains: [baseSepolia],
+  chains: [base],
   transports: {
-    [baseSepolia.id]: createFallbackTransport(baseSepoliaRpcs),
+    [base.id]: createFallbackTransport(baseMainnetRpcs),
   },
   ssr: true,
 });
 
 const rootElement = document.getElementById('root');
-if (!rootElement) throw new Error("Root element not found");
+if (!rootElement) throw new Error('Root element not found');
 
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider theme={darkTheme({
-          accentColor: '#00D1FF',
-          accentColorForeground: 'black',
-          borderRadius: 'medium',
-        })}>
+        <RainbowKitProvider
+          theme={darkTheme({
+            accentColor: '#00D1FF',
+            accentColorForeground: 'black',
+            borderRadius: 'medium',
+          })}
+        >
           <App />
         </RainbowKitProvider>
       </QueryClientProvider>
