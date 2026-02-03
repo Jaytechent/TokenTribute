@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import DonateModal from '../components/DonateModal';
 import { fetchUserByUsername, extractAddressFromUserkeys } from '../services/ethosService';
 import { EthosProfile } from '../types';
+import { MY_ACCOUNT } from '../constants';
+
 
 const DonatePage: React.FC = () => {
   const { username } = useParams<{ username: string }>();
@@ -17,39 +19,50 @@ const DonatePage: React.FC = () => {
       navigate('/'); // fallback if no username
       return;
     }
+const loadUser = async () => {
+  setLoading(true);
+  try {
+    let user: any = null;
 
-    const loadUser = async () => {
-      setLoading(true);
-      try {
-        const user = await fetchUserByUsername(username);
-        if (!user) throw new Error('User not found');
+    // ✅ Handle local mock account
+    if (username.toLowerCase() === MY_ACCOUNT.username.toLowerCase()) {
+      user = MY_ACCOUNT;
+    } else {
+      user = await fetchUserByUsername(username);
+    }
 
-        const addr = extractAddressFromUserkeys(user.userkeys || []);
-        if (!addr) throw new Error('User wallet not found');
+    if (!user) throw new Error('User not found');
 
-        setProfile({
-          id: user.profileId?.toString() || user.id.toString(),
-          username: user.username,
-          displayName: user.displayName || user.username,
-          avatarUrl: user.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`,
-          description: user.description || '',
-          credibilityScore: user.score || 0,
-          profileUrl: user.profileUrl,
-          userkeys: user.userkeys || [],
-          stats: {
-            reviewsReceived: user.stats?.review?.received || { positive: 0, neutral: 0, negative: 0 },
-            vouchesGiven: user.stats?.vouch?.given?.count || 0,
-            vouchesReceived: user.stats?.vouch?.received?.count || 0,
-          },
-        });
+    const addr = extractAddressFromUserkeys(user.userkeys || []);
+    if (!addr) throw new Error('User wallet not found');
 
-        setWallet(addr);
-      } catch (err: any) {
-        setError(err.message || 'Failed to load user');
-      } finally {
-        setLoading(false);
-      }
-    };
+    setProfile({
+      id: user.profileId?.toString() || user.id.toString(),
+      username: user.username,
+      displayName: user.displayName || user.username,
+      avatarUrl:
+        user.avatarUrl ||
+        `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`,
+      description: user.description || '',
+      credibilityScore: user.score || 0,
+      profileUrl: user.profileUrl,
+      userkeys: user.userkeys || [],
+      stats: {
+        reviewsReceived:
+          user.stats?.review?.received || { positive: 0, neutral: 0, negative: 0 },
+        vouchesGiven: user.stats?.vouch?.given?.count || 0,
+        vouchesReceived: user.stats?.vouch?.received?.count || 0,
+      },
+    });
+
+    setWallet(addr);
+  } catch (err: any) {
+    setError(err.message || 'Failed to load user');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
     loadUser();
   }, [username, navigate]);

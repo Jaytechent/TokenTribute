@@ -13,8 +13,8 @@ const App: React.FC = () => {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/donate/:username" element={<DonatePage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
         <Route path="/guide" element={<GuidePage />} />
+         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );

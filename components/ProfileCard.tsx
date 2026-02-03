@@ -27,7 +27,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   // ✅ Donation share link - uses toast instead of alert
   const handleShareClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // ⛔ prevent profile click
-    const shareUrl = `${window.location.origin}${window.location.pathname}?profile=${profile.username}`;
+    const shareUrl = `${window.location.origin}/donate/${profile.username}`;
+
     navigator.clipboard.writeText(shareUrl)
       .then(() => {
         if (onShowToast) {

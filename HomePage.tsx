@@ -52,7 +52,8 @@ const HomePage: React.FC = () => {
   };
 
   const copyShareLink = (username: string) => {
-    const shareUrl = `${window.location.origin}${window.location.pathname}?profile=${username}`;
+    const shareUrl = `${window.location.origin}/donate/${profile.username}`;
+
     navigator.clipboard.writeText(shareUrl)
       .then(() => {
         showToast('✨ Share link copied to clipboard!');
