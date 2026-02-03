@@ -1,6 +1,6 @@
 import { DonationRecord } from '../types';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_REACT_APP_BACKEND_URL|| 'http://localhost:5000/api';
 
 /**
  * Save a donation to the database

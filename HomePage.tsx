@@ -8,6 +8,7 @@ import { saveDonation, getAllDonations } from './services/donationApi';
 import EthosLogo from './components/EthosLogo';
 import FounderMode from './components/FounderMode';
 import ProfileCard from './components/ProfileCard';
+import { MY_ACCOUNT, getCombinedProfiles } from './constants';
 import DonateModal from './components/DonateModal';
 import { searchEthosUsersWithGemini, paginateResults, sortProfiles } from './services/geminiService';
 import DonationHistory from './components/DonationHistory';
@@ -124,7 +125,9 @@ const HomePage: React.FC = () => {
       setLoading(true);
       try {
         const fetchedProfiles = await fetchTopCredibilityUsers(INITIAL_FETCH);
-        setProfiles(fetchedProfiles);
+const combinedProfiles = getCombinedProfiles(fetchedProfiles);
+setProfiles(combinedProfiles);
+setFilteredProfiles(combinedProfiles);
         setFilteredProfiles(fetchedProfiles);
         
         const params = new URLSearchParams(window.location.search);

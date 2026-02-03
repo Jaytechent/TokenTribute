@@ -1,5 +1,7 @@
 
-export const BASE_SEPOLIA_USDC_ADDRESS = '0xf7464321de37bde4c03aaeef6b1e7b71379a9a64';
+
+
+export const BASE_SEPOLIA_USDC_ADDRESS = import.meta.env.VITE_USDC_CONTRACT_ADDRESS ;
 export const USDC_DECIMALS = 6;
 
 export const ERC20_ABI = [
@@ -24,46 +26,50 @@ export const ERC20_ABI = [
 
 export const ELIGIBILITY_THRESHOLD = 1400;
 
-// Mock profiles for initial UI showcase in case the live API is restricted/needs keys
-export const MOCK_PROFILES = [
-  {
-    id: "1",
-    displayName: "Vitalik Buterin",
-    username: "vitalik",
-    avatarUrl: "https://picsum.photos/seed/vitalik/200",
-    credibilityScore: 2450,
-    userkeys: ["address:0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045", "twitter:vitalik"]
+// ============================================
+// YOUR ACCOUNT (OWNER) - ONLY ACCOUNT
+// ============================================
+
+export const MY_ACCOUNT = {
+  id: "0",
+  displayName: "Hallenjay",
+  username: "hallenjayArt",
+  avatarUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=hallenjayArt",
+  description: "Creator & Builder on Base | TokenTribute Founder",
+  credibilityScore: 1800,
+  userkeys: [
+    "address:0xD1C7bf8990FbA07F9C8B57529e3D9753D00A73aA",
+    "twitter:hallenjayArt",
+    "github:jaytechent"
+  ],
+  profileUrl: "https://x.com/hallenjayArt",
+  stats: {
+    reviewsReceived: { positive: 45, neutral: 8, negative: 2 },
+    vouchesGiven: 120,
+    vouchesReceived: 95,
   },
-  {
-    id: "2",
-    displayName: "Satoshi G",
-    username: "anonymous_dev",
-    avatarUrl: "https://picsum.photos/seed/sat/200",
-    credibilityScore: 1350,
-    userkeys: ["address:0x1234567890123456789012345678901234567890"]
-  },
-  {
-    id: "3",
-    displayName: "Base Builder",
-    username: "buildbase",
-    avatarUrl: "https://picsum.photos/seed/base/200",
-    credibilityScore: 1680,
-    userkeys: ["address:0x000000000000000000000000000000000000dEaD"]
-  },
-  {
-    id: "4",
-    displayName: "Ethos Explorer",
-    username: "ethos_user",
-    avatarUrl: "https://picsum.photos/seed/ethos/200",
-    credibilityScore: 1420,
-    userkeys: ["github:ethosuser"] // Missing wallet
-  },
-  {
-    id: "5",
-    displayName: "DeFi Degen",
-    username: "yield_farmer",
-    avatarUrl: "https://picsum.photos/seed/degen/200",
-    credibilityScore: 800,
-    userkeys: ["address:0x5555555555555555555555555555555555555555"]
-  }
-];
+  isFeatured: true,
+  isOwner: true,
+};
+
+// ============================================
+// HELPER FUNCTION
+// ============================================
+
+/**
+ * Get all profiles including your account
+ * Combine your account with fetched Ethos profiles
+ * No mock profiles, only real Ethos data
+ */
+export const getCombinedProfiles = (ethosProfiles: any[] = []) => {
+  // Filter out duplicates (in case your account exists in Ethos)
+  const ethosFiltered = ethosProfiles.filter(
+    (profile) => profile.username.toLowerCase() !== MY_ACCOUNT.username.toLowerCase()
+  );
+  
+  // Return with your account first, then Ethos profiles
+  return [
+    MY_ACCOUNT,
+    ...ethosFiltered,
+  ];
+};

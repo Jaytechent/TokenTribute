@@ -33,7 +33,7 @@ const ChatModal: React.FC<ChatModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const API_URL = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'https://token-tribute-be.vercel.app';
+  const API_URL = 'https://tokentribute-1.onrender.com';
   
  
   const MIN_CREDIBILITY = 1400; 
